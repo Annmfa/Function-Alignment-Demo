@@ -1,0 +1,9 @@
+baseURL = "https://annmfa.github.io/Function-Alignment-Demo/"
+languageCode = "en-us"
+title = "Perceptual-Analytic Function Alignment"
+disableKinds = ["taxonomy", "term", "RSS", "sitemap", "robotsTXT"]
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
