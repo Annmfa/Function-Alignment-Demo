@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+	<meta name="generator" content="Hugo 0.131.0">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bridging Sensibility and Rationality: Function Alignment across Heterogeneous Dynamics</title>
+    <meta name="description" content="Anonymous project page.">
+    <link rel="stylesheet" href="css/main.css?v=1777293955">
+  </head>
+  <body>
+    
+<main class="markdown-page">
+  <article class="markdown-body">
+    <h1 id="bridging-perceptual-and-analytic-dynamics-via-function-alignment">Bridging Sensibility and Rationality: Function Alignment across Heterogeneous Dynamics</h1>
+<div class="title-block">
+  <p><strong>Anonymous Authors</strong></p>
+</div>
+<p>Human modeling of complex processes often involves multiple representations that capture different aspects of the same underlying reality. A common strategy is to collapse such representations into a single unified dynamics model, but this can force predictors with different information, inductive biases, and residual errors to share one predictive mechanism. We study <em>function alignment</em> as an alternative organization principle: native autoregressive dynamics are preserved for each representation, while learned directional adapters allow the predictive functions to exchange corrective information during rollout. We provide a theoretical perspective on the potential benefits of function alignment, and provide an instantiation for time-aligned perceptual--analytic representations. Experiments on two physical prediction tasks, covering missing latent information and approximate analytic dynamics, show that function alignment improves long-horizon unconditional rollout in both perceptual and analytic domains over unified-dynamics baselines. Together, these results support function alignment as a practical alternative to unified modeling for stable sequential prediction.</p>
+<div class="figure-table teaser-table-wrap">
+<table>
+<thead>
+<tr>
+<th>Standalone Dynamics</th>
+<th>Unified Dynamics</th>
+<th>Function Alignment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="figs/teaser_1.png" alt=""></td>
+<td><img src="figs/teaser_2.png" alt=""></td>
+<td><img src="figs/teaser_3.png" alt=""></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h2 id="methodology">Methodology</h2>
+<p>Function alignment couples a perceptual dynamics model and an analytic dynamics model without flattening them into one shared state transition. Analytic history conditions the perceptual rollout, while perceptual evidence supplies a corrective signal back into the analytic transition.</p>
+<p>For the broader conceptual framing behind function alignment, see the position paper <a href="https://arxiv.org/abs/2503.21106">Function Alignment: A New Theory of Mind and Intelligence, Part I: Foundations</a>.</p>
+<div class="figure-table method-table-wrap">
+<table>
+<thead>
+<tr>
+<th>Function Alignment</th>
+<th>Analytic-to-Perceptual Adaptation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="figs/fa.png" alt=""><br>Function alignment introduces analytic-to-perceptual conditioning and perceptual-to-analytic corrective updates while preserving the base predictive functions.</td>
+<td><img src="figs/transformer.png" alt=""><br>Projected analytic tokens are added as causal context and optimized with LoRA rather than rewriting the pretrained perceptual dynamics wholesale.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Function alignment is a plug-and-play mechanism: it preserves the original dynamics and adds alignment modules around them. In general, it can be used both for co-generation and for conditional generation, but this page focuses only on co-generation results.</p>
+<h2 id="experiment-1-wind-affected-bouncing-ball">Experiment 1: Wind-Affected Bouncing Ball</h2>
+<h3 id="dataset-setting">Dataset Setting</h3>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Dataset Demo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A ball moves in 3D under gravity, collisions, and a latent wind field. The analytic state keeps only position and velocity, so the analytic dynamics miss the wind information visible in the perceptual stream.<br><br>Here, perceptual dynamics are a VideoGPT that captures visual wind cues, while analytic dynamics are a compact rule-based kinematic model. We test if Function Alignment can combine their advantages to achieve accurate long-horizon co-generation.</td>
+<td><img src="gifs/wbb_data.gif" alt=""><br>Solid ball: ground-truth trajectory; Dimmed ball: analytic kinematic rollout without wind effects (only for visualization).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="x-domain-perceptual-prediction"><code>x</code> Domain: Perceptual Prediction</h3>
+<table>
+<thead>
+<tr>
+<th>Quantitative</th>
+<th>Qualitative</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="figs/z4x_plot_bifasa_mae_uncd_0129.png" alt=""><br>Rollout error in the perceptual domain under co-generation.</td>
+<td><img src="gifs/wbb_comparison_sync.gif" alt=""><br>Top row: Ground truth. Bottom row from left to right: Full FA, Unified, w/o x→z, and f_x only. The pink square indicates the predicted frames based on 3 given starting frames.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="z-domain-analytic-prediction"><code>z</code> Domain: Analytic Prediction</h3>
+<table>
+<thead>
+<tr>
+<th>Quantitative</th>
+<th>Qualitative</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="figs/x4z_plot_bifasa_uncd_0129.png" alt=""><br>Rollout error in the analytic state space under co-generation.</td>
+<td><img src="figs/wbb_q.png" alt="WBB qualitative analytic trajectories." style="max-width: 480px; width: 100%; margin: 0 auto;"><br>Predicted trajectories in 3D position space. Top: Full FA (pink) vs. ground truth (green). Bottom: unified dynamics (pink) vs. ground truth (green). Larger point: shared initial condition.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="experiment-2-double-pendulum">Experiment 2: Double Pendulum</h2>
+<h3 id="dataset-setting-1">Dataset Setting</h3>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Dataset Demo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The double pendulum environment pairs rendered video frames with analytic states containing joint angles and angular velocities. The analytic dynamics use Euler integration, so the state model is compact and physically meaningful but numerically approximate in a chaotic regime.<br><br>Here, perceptual dynamics are a VideoGPT that models directly the visual observations, while analytic dynamics are still a compact rule-based model.</td>
+<td><img src="gifs/db_data.gif" alt=""><br>Solid pendulum: ground-truth motion; dimmed pendulum: Euler-integrated analytic rollout (only for visualization).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="x-domain-perceptual-prediction-1"><code>x</code> Domain: Perceptual Prediction</h3>
+<table>
+<thead>
+<tr>
+<th>Quantitative</th>
+<th>Qualitative</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="figs/dp_z4x_plot_bifasa_mae_uncd_0129.png" alt=""><br>Rollout error in the perceptual domain under co-generation.</td>
+<td><img src="gifs/db_comparison_sync.gif" alt=""><br>Top row: Ground truth. Bottom row from left to right: Full FA, Unified, w/o x→z, and f_x only. The pink square indicates the predicted frames based on 1 given starting frame.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="z-domain-analytic-prediction-1"><code>z</code> Domain: Analytic Prediction</h3>
+<table>
+<thead>
+<tr>
+<th>Quantitative</th>
+<th>Qualitative</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img src="figs/dp_x4z_plot_uncd_0129.png" alt=""><br>Rollout error in the analytic state space under co-generation.</td>
+<td><img src="figs/dp_q.png" alt=""><br>Predicted trajectories in joint-angle space. Top: Full FA (pink) vs. ground truth (green). Bottom: unified dynamics (pink) vs. ground truth (green). Larger point: shared initial condition.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="citation">Citation</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bibtex" data-lang="bibtex"><span style="display:flex;"><span><span style="color:#a6e22e">@misc</span>{anonymous2026bridging,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">title</span>  = <span style="color:#e6db74">{Bridging Sensibility and Rationality: Function Alignment across Heterogeneous Dynamics}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">author</span> = <span style="color:#e6db74">{Anonymous Authors}</span>,
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">year</span>   = <span style="color:#e6db74">{2026}</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>
+  </article>
+</main>
+
+  </body>
+</html>
